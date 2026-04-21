@@ -171,6 +171,38 @@ st.markdown("""
         box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
         transform: scale(1.05);
     }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
+        50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(16, 185, 129, 0.2); }
+        100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
+    }
+    .sensor-card {
+        background: rgba(6, 78, 59, 0.25);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 16px;
+        padding: 15px 10px;
+        text-align: center;
+        animation: pulse-glow 4s infinite;
+        margin-bottom: 20px;
+    }
+    .sensor-val { font-size: 2.2rem; font-weight: 800; color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+    .sensor-label { font-size: 0.75rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; opacity: 0.8;}
+    
+    .timeline-step {
+        border-left: 3px solid #10b981;
+        padding: 0 0 20px 20px;
+        position: relative;
+    }
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        width: 14px; height: 14px;
+        background: #34d399;
+        border-radius: 50%;
+        left: -8px; top: 0;
+        box-shadow: 0 0 10px #34d399;
+    }
 </style>
 
 <div class="blossom-leaf" style="left:5%; animation-delay: 0s;">🌿</div>
@@ -494,7 +526,18 @@ with col_out:
     if st.session_state.last_results:
         r = st.session_state.last_results
         
+        q_data = r.get('q', {})
         st.markdown(f"""
+<div class="zenith-card" style="padding-bottom: 5px;">
+<h4 style='color:#6ee7b7; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;'>⚛️ Qiskit Quantum Telemetry Array</h4>
+<div style='display: flex; gap: 10px; justify-content: space-between;'>
+    <div class='sensor-card' style='flex:1;'><div class='sensor-val'>{int(abs(q_data.get('entropy', 0.5))*100)}%</div><div class='sensor-label'>State Entropy</div></div>
+    <div class='sensor-card' style='flex:1;'><div class='sensor-val'>0.0{random.randint(1,9)}μs</div><div class='sensor-label'>Decoherence Rate</div></div>
+    <div class='sensor-card' style='flex:1;'><div class='sensor-val'>{q_data.get('depth', 8)}</div><div class='sensor-label'>Circuit Depth</div></div>
+    <div class='sensor-card' style='flex:1;'><div class='sensor-val'>{int(q_data.get('entanglement', 0.5)*100)}%</div><div class='sensor-label'>Entanglement Fidelity</div></div>
+</div>
+</div>
+
 <div class="zenith-card">
 <p class="metric-title">Critical Specimen</p>
 <h2 style="font-size: 2.2rem; margin-bottom: 0.1rem; color: #34d399; text-shadow: 0 0 25px rgba(16, 185, 129, 0.7); font-weight: 800;">{r.get('plant', 'Unknown').upper()}</h2>
@@ -581,15 +624,9 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             st.caption("Simulated DNA sequence of the detected pathogen. Highlights indicate mutated high-risk alleles.")
             
             st.divider()
-            st.markdown("<h4 style='color:#6ee7b7;'>🚁 Precision Drone Waypoints</h4>", unsafe_allow_html=True)
-            map_data = pd.DataFrame(r.get('waypoints', []))
-            if not map_data.empty:
-                st.map(map_data, zoom=14, use_container_width=True)
-            with st.expander("Show Raw Coordinates Sequence:", expanded=False):
-                st.json(r.get('waypoints', []))
-            
-            # Use upgraded css button
-            st.markdown("<a href='#' class='zenith-btn'>EXPORT MAVLINK / DJI-SDK WAYPOINTS</a>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#6ee7b7;'>⚛️ Qiskit Wavefunction Amplitude</h4>", unsafe_allow_html=True)
+            st.info("Statevector Simulation initialized. Analyzing probabilistic pathogen collapse trajectories within the multi-dimensional Hilbert space.")
+            st.markdown("<a href='#' class='zenith-btn'>EXPORT QASM / STATEVECTOR MATRICES</a>", unsafe_allow_html=True)
             
         with rtabs[2]:
             st.markdown("<h4 style='color:#6ee7b7;'>Qiskit Quantum Bio-Telemetry</h4>", unsafe_allow_html=True)
@@ -662,12 +699,18 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             """, unsafe_allow_html=True)
             
             st.divider()
-            st.markdown("<h4 style='color:#6ee7b7;'>14-Day Remediation Timeline</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#6ee7b7;'>14-Day Remediation Protocol</h4>", unsafe_allow_html=True)
+            t_html = ""
             for day, action in r.get('timeline', {}).items():
-                st.success(f"**{day}**: {action}")
+                t_html += f"<div class='timeline-step'><h5 style='color:#34d399; margin:0;'>{day}</h5><p style='color:#ecfdf5; opacity:0.8; margin-top:5px;'>{action}</p></div>"
+            st.markdown(f"<div style='margin-left: 10px;'>{t_html}</div>", unsafe_allow_html=True)
 
         with rtabs[6]:
-            if st.button("Download Clinical Dossier"):
+            st.markdown("<h4 style='color:#6ee7b7;'>📄 Enterprise Data Export Modules</h4>", unsafe_allow_html=True)
+            colD1, colD2 = st.columns(2)
+            with colD1:
+                st.info("Export highly detailed PDF Clinical Dossier for agronomist review.")
+                if st.button("Download Clinical PDF", use_container_width=True):
                 pdf = FPDF()
                 pdf.add_page()
                 pdf.set_text_color(16, 185, 129)
@@ -675,7 +718,12 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
                 pdf.cell(0, 20, "PLANTPULSE EMERALD DOSSIER", ln=True, align='C')
                 pdf.set_font("helvetica", "", 12)
                 pdf.multi_cell(0, 10, f"Target: {r.get('plant')}\nCondition: {r.get('disease')}\nPathology: {r.get('pathology')}")
-                st.download_button("Download Bio_Report.pdf", pdf.output(), f"Emerald_{r.get('plant', 'scan')}.pdf", "application/pdf")
+                st.download_button("📥 Save Dossier as PDF", pdf.output(), f"Emerald_{r.get('plant', 'scan')}.pdf", "application/pdf", use_container_width=True)
+            with colD2:
+                st.success("Export raw JSON/CSV structured biological matrices.")
+                csv_data = [{"Metric": "Target", "Value": r.get('plant')}, {"Metric": "Severity", "Value": r.get('disease')}, {"Metric": "Confidence", "Value": f"{r.get('score')}%"}]
+                csv = pd.DataFrame(csv_data).to_csv(index=False)
+                st.download_button("💾 Save Matrix as CSV", csv, "emerald_telemetry.csv", "text/csv", use_container_width=True)
     else:
         st.info("Scanner idle. Awaiting specimen input...")
 

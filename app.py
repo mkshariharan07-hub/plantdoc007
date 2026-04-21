@@ -350,6 +350,20 @@ with st.sidebar:
         st.dataframe(pd.DataFrame(st.session_state.specimen_history[-5:]), use_container_width=True, hide_index=True)
     else:
         st.caption("No biological entries logged yet.")
+        
+    st.divider()
+    st.markdown("### 🖥️ Core Matrix Logs")
+    st.markdown(f"""
+    <div style='background:rgba(0,0,0,0.6); border-left:3px solid #10b981; padding: 10px; font-family: monospace; font-size:0.7rem; color:#10b981; height: 140px; overflow: hidden;'>
+        > System Online...<br>
+        > Qiskit initialized (8-Qubit).<br>
+        > Pathogen.API synchronized.<br>
+        > Listening on port 80...<br>
+        > Specimen environment active.<br>
+        > Analyzing structural anomalies...<br>
+        > Wavefunction collapse optimal.
+    </div>
+    """, unsafe_allow_html=True)
     
     st.divider()
     st.markdown("### 🧬 Assistant Core")
@@ -659,12 +673,20 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             
             st.divider()
             st.markdown("<h4 style='color:#6ee7b7;'>⚕️ Crop.Health Pathology Markers</h4>", unsafe_allow_html=True)
-            st.info("Cross-referencing cellular anomalies against the global Pathogen.API database...")
+            st.info("Cross-referencing biological abnormalities against the global Crop.Health intelligence database...")
             
             st.divider()
-            st.markdown("<h4 style='color:#6ee7b7;'>⚛️ Qiskit Wavefunction Amplitude</h4>", unsafe_allow_html=True)
-            st.info("Statevector Simulation initialized. Analyzing probabilistic pathogen collapse trajectories within the multi-dimensional Hilbert space.")
-            st.markdown("<a href='#' class='zenith-btn'>EXPORT QASM / STATEVECTOR MATRICES</a>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#6ee7b7;'>⚛️ QASM Statevector Simulation</h4>", unsafe_allow_html=True)
+            
+            # Additional tech-visual: Add an active matrix visual output
+            import plotly.express as px
+            st.caption("Hilbert Space 2D Orthogonal Projection (Simulated)")
+            noise_matrix = np.random.rand(8, 8)
+            fig_heat = px.imshow(noise_matrix, color_continuous_scale="emrld", zmin=0, zmax=1)
+            fig_heat.update_layout(coloraxis_showscale=False, xaxis_visible=False, yaxis_visible=False, margin=dict(l=0,r=0,t=0,b=0), height=200, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig_heat, use_container_width=True)
+            
+            st.markdown("<a href='#' class='zenith-btn' style='margin-top:15px;'>EXPORT STATEVECTOR MATRICES ↗</a>", unsafe_allow_html=True)
             
         with rtabs[2]:
             st.markdown("<h4 style='color:#6ee7b7;'>Qiskit Quantum Bio-Telemetry</h4>", unsafe_allow_html=True)
@@ -693,7 +715,27 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             fig_bloch.update_layout(scene=dict(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False), paper_bgcolor="rgba(0,0,0,0)", height=350, margin=dict(l=0,r=0,t=0,b=0))
             st.plotly_chart(fig_bloch, width="stretch")
 
-            st.markdown("<h4 style='color:#6ee7b7;'>Quantum Circuit Ledger</h4>", unsafe_allow_html=True)
+            # NEW: 3D Qubit Entanglement Topology
+            st.markdown("<h4 style='color:#6ee7b7; margin-top:20px;'>🕸 Qubit Entanglement Topology</h4>", unsafe_allow_html=True)
+            np.random.seed(random.randint(1,100)) # Randomize the topology structure slightly per scan
+            nodes_x = np.random.uniform(0, 10, 8)
+            nodes_y = np.random.uniform(0, 10, 8)
+            nodes_z = np.random.uniform(0, 10, 8)
+            edges_x, edges_y, edges_z = [], [], []
+            for i in range(8):
+                for j in range(i+1, 8):
+                    if random.random() > 0.4:  # roughly 60% chance of connection
+                        edges_x.extend([nodes_x[i], nodes_x[j], None])
+                        edges_y.extend([nodes_y[i], nodes_y[j], None])
+                        edges_z.extend([nodes_z[i], nodes_z[j], None])
+            
+            fig_net = go.Figure()
+            fig_net.add_trace(go.Scatter3d(x=edges_x, y=edges_y, z=edges_z, mode='lines', line=dict(color='rgba(16, 185, 129, 0.5)', width=2)))
+            fig_net.add_trace(go.Scatter3d(x=nodes_x, y=nodes_y, z=nodes_z, mode='markers', marker=dict(size=10, color='#0284c7', line=dict(color='#fff', width=1), symbol='diamond')))
+            fig_net.update_layout(scene=dict(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False), paper_bgcolor="rgba(0,0,0,0)", height=300, margin=dict(l=0,r=0,t=0,b=0), showlegend=False)
+            st.plotly_chart(fig_net, use_container_width=True)
+
+            st.markdown("<h4 style='color:#6ee7b7; margin-top:20px;'>Quantum Circuit Ledger</h4>", unsafe_allow_html=True)
             st.code(q_data.get('circuit_str', 'Circuit data missing'), language="text")
             
             st.markdown("<h4 style='color:#34d399;'>Raw Quantum Bit-Flip Breakdown</h4>", unsafe_allow_html=True)

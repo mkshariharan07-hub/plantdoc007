@@ -343,10 +343,19 @@ with st.sidebar:
     if not (c1 and c2): st.warning("Diagnostics compromised: Keys missing.")
     
     st.divider()
+    st.markdown("### 🗂️ Specimen Ledger")
+    if st.session_state.specimen_history:
+        import pandas as pd
+        # Show recent 5 scans
+        st.dataframe(pd.DataFrame(st.session_state.specimen_history[-5:]), use_container_width=True, hide_index=True)
+    else:
+        st.caption("No biological entries logged yet.")
+    
+    st.divider()
     st.markdown("### 🧬 Assistant Core")
     st.session_state.assistant_mode = st.selectbox("Personality Matrix", ["Quantum Oracle", "Bio-Scientist", "Farm Guardian"])
     
-    with st.expander("📡 Last Scan Diagnostics", expanded=True):
+    with st.expander("📡 Last Scan Diagnostics", expanded=False):
         if st.session_state.get('last_results'):
             lr = st.session_state.last_results
             st.write(f"**Target:** {lr.get('plant')}")
@@ -638,10 +647,15 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
                 st.caption("Thermal metabolic hyperactivity localized.")
                 
         with rtabs[1]:
-            st.markdown("<h4 style='color:#6ee7b7;'>Pathogen Genomic Fingerprint</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#6ee7b7;'>🧬 Pathogen Genomic Fingerprint</h4>", unsafe_allow_html=True)
             dna = r.get('dna', 'ATCG'*8)
-            st.code(dna, language="text")
-            st.caption("Simulated DNA sequence of the detected pathogen. Highlights indicate mutated high-risk alleles.")
+            dna_html = ""
+            nuc_colors = {"A": "#ef4444", "T": "#3b82f6", "C": "#eab308", "G": "#10b981"}
+            for char in dna:
+                c = nuc_colors.get(char, '#fff')
+                dna_html += f"<span style='color: {c}; font-weight: 800; font-family: monospace; letter-spacing: 3px; text-shadow: 0 0 10px {c};'>{char}</span>"
+            st.markdown(f"<div style='background:rgba(0,0,0,0.5); padding: 20px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3); text-align: center; font-size: 1.5rem; word-break: break-all;'>{dna_html}</div>", unsafe_allow_html=True)
+            st.caption("Simulated DNA sequence of the detected pathogen. Chromatic highlighting indicates mutated high-risk alleles mapping against global pathogen signatures.")
             
             st.divider()
             st.markdown("<h4 style='color:#6ee7b7;'>⚕️ Crop.Health Pathology Markers</h4>", unsafe_allow_html=True)
@@ -690,20 +704,20 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             st.markdown("<h4 style='color:#6ee7b7;'>🌈 Bio-Spectral Channel Analysis</h4>", unsafe_allow_html=True)
             sc1, sc2, sc3 = st.columns(3)
             with sc1:
-                st.markdown("<p style='color:#ef4444; font-size:0.8rem;'>RED (CHLOROSIS)</p>", unsafe_allow_html=True)
+                st.markdown("<div style='background:rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 10px; border-left: 3px solid #ef4444;'><p style='color:#ef4444; font-size:0.8rem; margin:0; font-weight:bold;'>RED BAND (CHLOROSIS)</p></div>", unsafe_allow_html=True)
                 st.progress(random.uniform(0.1, 0.9))
             with sc2:
-                st.markdown("<p style='color:#10b981; font-size:0.8rem;'>GREEN (VITALITY)</p>", unsafe_allow_html=True)
+                st.markdown("<div style='background:rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 3px solid #10b981;'><p style='color:#10b981; font-size:0.8rem; margin:0; font-weight:bold;'>GREEN BAND (VITALITY)</p></div>", unsafe_allow_html=True)
                 st.progress(random.uniform(0.1, 0.9))
             with sc3:
-                st.markdown("<p style='color:#3b82f6; font-size:0.8rem;'>BLUE (HYDRATION)</p>", unsafe_allow_html=True)
+                st.markdown("<div style='background:rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 10px; border-left: 3px solid #3b82f6;'><p style='color:#3b82f6; font-size:0.8rem; margin:0; font-weight:bold;'>BLUE BAND (HYDRATION)</p></div>", unsafe_allow_html=True)
                 st.progress(random.uniform(0.1, 0.9))
             
             st.divider()
             st.markdown("<h4 style='color:#6ee7b7;'>🛰 Global Incident Dispatch</h4>", unsafe_allow_html=True)
             if st.button("🚀 ALERT REGIONAL AGRONOMIST", use_container_width=True, type="primary"):
                 st.toast("Bio-Security Alert Dispatched!", icon="🚨")
-                st.success("Regional bio-security updated.")
+                st.success("Regional bio-security updated. Ground teams notified globally.")
 
         with rtabs[4]:
             st.markdown("<h4 style='color:#6ee7b7;'>🛡️ Quantum Bio-Encryption</h4>", unsafe_allow_html=True)

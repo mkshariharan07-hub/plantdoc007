@@ -571,7 +571,16 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
         with rtabs[0]:
             col_p1, col_p2 = st.columns([2, 1])
             with col_p1:
+                st.markdown("<div style='display:inline-block; padding: 5px 12px; background: rgba(6,182,212,0.15); border: 1px solid #06b6d4; border-radius: 20px; font-size: 0.75rem; color: #67e8f9; margin-bottom: 10px;'>Powered by Crop.Health API ⚡</div>", unsafe_allow_html=True)
                 st.info(f"**Bio-Analysis:** {r.get('pathology', 'N/A')}")
+                
+                # Perenual Care Info Integration
+                care_data = r.get('care', {})
+                if care_data:
+                    st.markdown("<div style='display:inline-block; padding: 5px 12px; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.75rem; color: #fcd34d; margin-bottom: 10px; margin-top: 15px;'>Pathogen.API / Perenual Engine 🧬</div>", unsafe_allow_html=True)
+                    st.write(f"**Sunlight Tolerance:** {', '.join(care_data.get('sunlight', ['Moderate']))}")
+                    st.write(f"**Watering Cycle:** {care_data.get('watering', 'Average')}")
+                    
                 # 11. Biological ROI
                 st.markdown(f"""
                 <div style='background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; border-left:4px solid #facc15;'>
@@ -622,6 +631,10 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             dna = r.get('dna', 'ATCG'*8)
             st.code(dna, language="text")
             st.caption("Simulated DNA sequence of the detected pathogen. Highlights indicate mutated high-risk alleles.")
+            
+            st.divider()
+            st.markdown("<h4 style='color:#6ee7b7;'>⚕️ Crop.Health Pathology Markers</h4>", unsafe_allow_html=True)
+            st.info("Cross-referencing cellular anomalies against the global Pathogen.API database...")
             
             st.divider()
             st.markdown("<h4 style='color:#6ee7b7;'>⚛️ Qiskit Wavefunction Amplitude</h4>", unsafe_allow_html=True)
@@ -711,14 +724,14 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             with colD1:
                 st.info("Export highly detailed PDF Clinical Dossier for agronomist review.")
                 if st.button("Download Clinical PDF", use_container_width=True):
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_text_color(16, 185, 129)
-                pdf.set_font("helvetica", "B", 24)
-                pdf.cell(0, 20, "PLANTPULSE EMERALD DOSSIER", ln=True, align='C')
-                pdf.set_font("helvetica", "", 12)
-                pdf.multi_cell(0, 10, f"Target: {r.get('plant')}\nCondition: {r.get('disease')}\nPathology: {r.get('pathology')}")
-                st.download_button("📥 Save Dossier as PDF", pdf.output(), f"Emerald_{r.get('plant', 'scan')}.pdf", "application/pdf", use_container_width=True)
+                    pdf = FPDF()
+                    pdf.add_page()
+                    pdf.set_text_color(16, 185, 129)
+                    pdf.set_font("helvetica", "B", 24)
+                    pdf.cell(0, 20, "PLANTPULSE EMERALD DOSSIER", ln=True, align='C')
+                    pdf.set_font("helvetica", "", 12)
+                    pdf.multi_cell(0, 10, f"Target: {r.get('plant')}\nCondition: {r.get('disease')}\nPathology: {r.get('pathology')}")
+                    st.download_button("📥 Save Dossier as PDF", pdf.output(), f"Emerald_{r.get('plant', 'scan')}.pdf", "application/pdf", use_container_width=True)
             with colD2:
                 st.success("Export raw JSON/CSV structured biological matrices.")
                 csv_data = [{"Metric": "Target", "Value": r.get('plant')}, {"Metric": "Severity", "Value": r.get('disease')}, {"Metric": "Confidence", "Value": f"{r.get('score')}%"}]

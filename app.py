@@ -228,8 +228,9 @@ if "last_results" not in st.session_state or st.session_state.last_results is No
         "disease": "Healthy/Indeterminate",
         "q": {"score": 1, "label": "Optimal", "prob": {"0000": 1.0}, "depth": 1, "entanglement": 0.05, "circuit_str": "Quantum Oracle Initialization..."},
         "dna": "AGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCT",
-        "pathology": "System initialized. Entanglement vectors stabilized. Awaiting biological input for live analysis.",
-        "rx": {"protocol": "Maintain baseline environmental parameters."},
+        "pathology": "System initialized. Entanglement vectors stabilized. Scanning biological mesh for anomalies...",
+        "rx": {"immediate_action": "Maintain baseline environmental parameters.", "long_term": "Monitor cellular integrity."},
+        "care": {"sunlight": ["Full Sun", "Partial Shade"], "watering": "Moderate"},
         "p_cat": "Bio-Stabilizer",
         "p_link": "https://www.amazon.com/s?k=organic+plant+stabilizer",
         "roi": 1200,
@@ -468,8 +469,8 @@ with col_in:
                             "disease": kw.get('disease', 'Healthy/Indeterminate'),
                             "score": pn.get('score', 0),
                             "q": q,
-                            "care": care,
-                            "pathology": kw.get('description', 'Pathology data offline or no disease detected.'),
+                            "care": care if care else {"sunlight": ["Full Sun (Synthesized)"], "watering": "Average (Estimated)"},
+                            "pathology": kw.get('description') or "Cellular integrity maintained. No critical pathogen markers identified in current sector.",
                             "rx": raw_rx,
                             "p_cat": p_cat,
                             "p_link": f"https://www.amazon.com/s?k={p_search}",
@@ -578,8 +579,18 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
                 care_data = r.get('care', {})
                 if care_data:
                     st.markdown("<div style='display:inline-block; padding: 5px 12px; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.75rem; color: #fcd34d; margin-bottom: 10px; margin-top: 15px;'>Pathogen.API / Perenual Engine 🧬</div>", unsafe_allow_html=True)
-                    st.write(f"**Sunlight Tolerance:** {', '.join(care_data.get('sunlight', ['Moderate']))}")
-                    st.write(f"**Watering Cycle:** {care_data.get('watering', 'Average')}")
+                    
+                    sunlight = care_data.get('sunlight')
+                    if not sunlight:
+                        sunlight = ["Moderate (Synthesized)"]
+                    elif isinstance(sunlight, str):
+                        sunlight = [sunlight]
+                    st.write(f"**Sunlight Tolerance:** {', '.join(sunlight)}")
+                    
+                    watering = care_data.get('watering')
+                    if not watering:
+                        watering = "Average (Estimated)"
+                    st.write(f"**Watering Cycle:** {watering}")
                     
                 # 11. Biological ROI
                 st.markdown(f"""

@@ -153,6 +153,24 @@ st.markdown("""
         0% { top: 0; }
         100% { top: 100%; }
     }
+    .zenith-btn {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        padding: 12px 24px;
+        font-weight: bold;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        transition: all 0.3s ease;
+        text-align: center;
+        width: 100%;
+        display: block;
+        text-decoration: none;
+    }
+    .zenith-btn:hover {
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
+        transform: scale(1.05);
+    }
 </style>
 
 <div class="blossom-leaf" style="left:5%; animation-delay: 0s;">🌿</div>
@@ -520,6 +538,30 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # --- NEW RADAR CHART for Risk Matrix ---
+                risk_data = r.get('risk_matrix', {})
+                if risk_data:
+                    import plotly.graph_objects as go
+                    st.markdown("<h4 style='color:#6ee7b7; margin-top:20px;'>Pathological Target Vector Matrix</h4>", unsafe_allow_html=True)
+                    categories = list(risk_data.keys())
+                    values = list(risk_data.values())
+                    categories.append(categories[0])
+                    values.append(values[0])
+                    
+                    fig = go.Figure(data=go.Scatterpolar(
+                        r=values, theta=categories, fill='toself', 
+                        line_color='#34d399', fillcolor='rgba(16, 185, 129, 0.4)'
+                    ))
+                    fig.update_layout(
+                        polar=dict(
+                            radialaxis=dict(visible=True, range=[0, 100], color='rgba(255,255,255,0.3)'),
+                            angularaxis=dict(color='#d1fae5')
+                        ), 
+                        showlegend=False, paper_bgcolor='rgba(0,0,0,0)', 
+                        plot_bgcolor='rgba(0,0,0,0)', height=300, margin=dict(l=20, r=20, t=20, b=20)
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
                 if r.get('rx'):
                     st.markdown("<h4 style='color:#6ee7b7;'>Remediation Directives</h4>", unsafe_allow_html=True)
                     for k, v in r.get('rx', {}).items():
@@ -540,8 +582,14 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             
             st.divider()
             st.markdown("<h4 style='color:#6ee7b7;'>🚁 Precision Drone Waypoints</h4>", unsafe_allow_html=True)
-            st.json(r.get('waypoints', []))
-            st.button("EXPORT MAVLINK / DJI-SDK WAYPOINTS", use_container_width=True)
+            map_data = pd.DataFrame(r.get('waypoints', []))
+            if not map_data.empty:
+                st.map(map_data, zoom=14, use_container_width=True)
+            with st.expander("Show Raw Coordinates Sequence:", expanded=False):
+                st.json(r.get('waypoints', []))
+            
+            # Use upgraded css button
+            st.markdown("<a href='#' class='zenith-btn'>EXPORT MAVLINK / DJI-SDK WAYPOINTS</a>", unsafe_allow_html=True)
             
         with rtabs[2]:
             st.markdown("<h4 style='color:#6ee7b7;'>Qiskit Quantum Bio-Telemetry</h4>", unsafe_allow_html=True)
@@ -607,9 +655,9 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             st.markdown("<h4 style='color:#6ee7b7;'>🛒 Purchase Nexus</h4>", unsafe_allow_html=True)
             st.write(f"Prioritizing solutions for **{r.get('p_cat')}**.")
             st.markdown(f"""
-            <div style="background:rgba(6,182,212,0.1); border:1px solid #06b6d4; padding:20px; border-radius:15px;">
+            <div style="background:rgba(6,182,212,0.1); border:1px solid #06b6d4; padding:20px; border-radius:15px; text-align: center;">
                 <h3 style="color:#06b6d4;">Target: {r.get('p_cat')}</h3>
-                <a href="{r.get('p_link')}" target="_blank"><button style="background:#06b6d4; color:white; border:none; padding:10px 25px; border-radius:8px;">BUY NOW ↗</button></a>
+                <a href="{r.get('p_link')}" target="_blank" class="zenith-btn" style="background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%); box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);">ACQUIRE COUNTERMEASURES ↗</a>
             </div>
             """, unsafe_allow_html=True)
             

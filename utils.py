@@ -16,10 +16,14 @@ import numpy as np
 import os
 import requests
 import base64
-from typing import Optional
+import json
+import datetime
+from typing import Optional, List
 from dotenv import load_dotenv
 
 load_dotenv()
+
+HISTORY_FILE = "scan_history.json"
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
 PLANTNET_API_KEY = os.getenv("PLANTNET_API_KEY")
@@ -442,3 +446,25 @@ def get_perenual_care_info(common_name: str) -> dict:
     except:
         pass
     return {}
+
+def save_scan_to_history(scan_data: dict):
+    """Append a scan result to the local history file."""
+    history = load_scan_history()
+    # Remove large binary/image data before saving
+    serializable_data = {k: v for k, v in scan_data.items() if k not in ['spectral_img', 'micro_img']}
+    history.append(serializable_data)
+    try:
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f, indent=4)
+    except Exception as e:
+        print(f"Failed to save history: {e}")
+
+def load_scan_history() -> List[dict]:
+    """Load the scan history from the local file."""
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    try:
+        with open(HISTORY_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []

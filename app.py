@@ -37,7 +37,9 @@ try:
         get_perenual_care_info,
         get_disease_info,
         predict_image,
-        load_model_and_scaler
+        load_model_and_scaler,
+        save_scan_to_history,
+        load_scan_history
     )
 except ImportError as e:
     st.error(f"Failed to import core utilities: {e}")
@@ -58,158 +60,11 @@ st.set_page_config(
 # ===============================
 # STYLING (Zenith Design System)
 # ===============================
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
-    
-    .stApp { 
-        background-color: #01160d;
-        background-image: 
-            radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
-            radial-gradient(circle at 90% 80%, rgba(5, 150, 105, 0.1) 0%, transparent 40%);
-        color: #ecfdf5; 
-        font-family: 'Outfit', sans-serif;
-    }
+from styles import ZENITH_CSS, BLOSSOM_LEAVES
+from components import voice_assistant_component, clinical_report_downloader, voice_recognition_component
 
-    /* Falling Leaf Animation */
-    @keyframes blossom {
-        0% { transform: translateY(-10vh) rotate(0deg) scale(0.5); opacity: 0; }
-        20% { opacity: 0.8; }
-        80% { opacity: 0.8; }
-        100% { transform: translateY(110vh) rotate(720deg) scale(1); opacity: 0; }
-    }
-    .blossom-leaf {
-        position: fixed; top: -5vh; z-index: 1000; pointer-events: none;
-        animation: blossom 15s linear infinite; font-size: 28px; color: #10b981; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));
-    }
-
-    /* Zenith Glassmorphism Cards */
-    .zenith-card {
-        background: rgba(6, 78, 59, 0.25);
-        backdrop-filter: blur(24px);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        border-radius: 28px;
-        padding: 1.8rem;
-        margin-bottom: 1.5rem;
-        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-    }
-    .zenith-card:hover {
-        transform: translateY(-5px);
-        border-color: #10b981;
-        background: rgba(6, 78, 59, 0.35);
-        box-shadow: 0 15px 50px rgba(16, 185, 129, 0.1);
-    }
-
-    .glow-text {
-        color: #34d399;
-        text-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
-        font-weight: 800;
-    }
-
-    .metric-title { font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 2px; color: #6ee7b7; }
-    .metric-value { font-size: 2.6rem; font-weight: 800; color: #ffffff; }
-
-    /* Custom Status Badges */
-    .badge {
-        padding: 8px 18px; border-radius: 100px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px;
-    }
-    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #f87171; }
-    .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
-    .badge-optimal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #34d399; }
-
-    /* Better tabs */
-    .stTabs [data-baseweb="tab-list"] { gap: 12px; background-color: transparent; }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px; border-radius: 16px; background-color: rgba(6, 95, 70, 0.1); color: #d1fae5; border: 1px solid rgba(16, 185, 129, 0.1); padding: 0 24px;
-    }
-    .stTabs [aria-selected="true"] { 
-        background-color: rgba(16, 185, 129, 0.2) !important; 
-        border-color: #10b981 !important; 
-        color: #10b981 !important; 
-        box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-    }
-
-    /* Developer Cards */
-    .dev-card {
-        background: rgba(255, 255, 255, 0.03);
-        border-left: 3px solid #10b981;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 0 12px 12px 0;
-        font-size: 0.85rem;
-    }
-    .dev-name { font-weight: 700; color: #34d399; display: block; }
-    .dev-meta { font-size: 0.75rem; opacity: 0.6; display: block; }
-
-    /* Scan Line Animation */
-    .scan-line {
-        position: absolute; width: 100%; height: 2px;
-        background: #10b981; box-shadow: 0 0 15px #10b981;
-        top: 0; left: 0; z-index: 5;
-        animation: scan 3s linear infinite;
-    }
-    @keyframes scan {
-        0% { top: 0; }
-        100% { top: 100%; }
-    }
-    .zenith-btn {
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        border: none;
-        border-radius: 8px;
-        color: white;
-        padding: 12px 24px;
-        font-weight: bold;
-        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
-        transition: all 0.3s ease;
-        text-align: center;
-        width: 100%;
-        display: block;
-        text-decoration: none;
-    }
-    .zenith-btn:hover {
-        box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
-        transform: scale(1.05);
-    }
-    @keyframes pulse-glow {
-        0% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
-        50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(16, 185, 129, 0.2); }
-        100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.1); }
-    }
-    .sensor-card {
-        background: rgba(6, 78, 59, 0.25);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: 16px;
-        padding: 15px 10px;
-        text-align: center;
-        animation: pulse-glow 4s infinite;
-        margin-bottom: 20px;
-    }
-    .sensor-val { font-size: 2.2rem; font-weight: 800; color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
-    .sensor-label { font-size: 0.75rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; opacity: 0.8;}
-    
-    .timeline-step {
-        border-left: 3px solid #10b981;
-        padding: 0 0 20px 20px;
-        position: relative;
-    }
-    .timeline-step::before {
-        content: '';
-        position: absolute;
-        width: 14px; height: 14px;
-        background: #34d399;
-        border-radius: 50%;
-        left: -8px; top: 0;
-        box-shadow: 0 0 10px #34d399;
-    }
-</style>
-
-<div class="blossom-leaf" style="left:5%; animation-delay: 0s;">🌿</div>
-<div class="blossom-leaf" style="left:25%; animation-delay: 3s;">🍃</div>
-<div class="blossom-leaf" style="left:45%; animation-delay: 7s;">🌱</div>
-<div class="blossom-leaf" style="left:65%; animation-delay: 1s;">🌿</div>
-<div class="blossom-leaf" style="left:85%; animation-delay: 5s;">🍃</div>
+st.markdown(ZENITH_CSS, unsafe_allow_html=True)
+st.markdown(BLOSSOM_LEAVES, unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 
 # ===============================
@@ -238,7 +93,7 @@ if "last_results" not in st.session_state or st.session_state.last_results is No
         "waypoints": []
     }
 if "specimen_history" not in st.session_state:
-    st.session_state.specimen_history = []
+    st.session_state.specimen_history = load_scan_history()
 if "assistant_mode" not in st.session_state:
     st.session_state.assistant_mode = "Quantum Oracle"
 if "last_scan_id" not in st.session_state:
@@ -247,14 +102,29 @@ if "last_scan_id" not in st.session_state:
 # ===============================
 # QUANTUM SEVERITY PROBABILISTIC
 # ===============================
-def analyze_severity_quantum(img: np.ndarray, backend_pref: str):
-    if not HAS_QUANTUM:
-        return {"score": 3, "label": "Simulated Matrix", "prob": {"0000": 0.5, "1111": 0.5}, "backend": "sim"}
-        
     try:
         small = cv2.resize(img, (64, 64))
+        hsv = cv2.cvtColor(small, cv2.COLOR_BGR2HSV)
+        
+        # Heuristic: Ratio of "non-green" pixels in the leaf
+        # Green hue is roughly 35-85
+        mask_green = cv2.inRange(hsv, (35, 40, 40), (85, 255, 255))
+        green_ratio = np.sum(mask_green > 0) / 4096.0
+        health_score = int((1.0 - green_ratio) * 4) + 1 # 1 to 5
+        
         gray  = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY).astype(float) / 255.0
         entropy = -np.sum(gray * np.log2(gray + 1e-7)) / 4096.0
+        
+        labels = ["Optimal", "Incipient", "Moderate", "Severe", "Critical"]
+        
+        if not HAS_QUANTUM:
+            return {
+                "score": health_score, 
+                "label": labels[min(health_score-1, 4)], 
+                "prob": {format(health_score, '04b'): 0.8, "0000": 0.2}, 
+                "backend": "sim-heuristic",
+                "entropy": entropy
+            }
         
         qr = QuantumRegister(8, 'q')
         cr = ClassicalRegister(8, 'c')
@@ -461,10 +331,35 @@ with col_in:
                         status.write("Quantum state entanglement check...")
                         q = analyze_severity_quantum(frame, "Simulator Only" if q_eng == "Simulator Optimized" else "Dynamic")
                         
+                        # Use local model as a robust fallback for disease if Kindwise fails
+                        local_pred = None
+                        try:
+                            model, scaler = load_model_and_scaler()
+                            local_pred = predict_image(frame, model, scaler)
+                        except:
+                            pass
+
                         if "error" in pn:
                             st.warning(f"Species identification failed: {pn['error']}")
-                        if "error" in kw:
-                            st.warning(f"Pathogen analysis failed: {kw['error']}")
+                            if local_pred:
+                                pn = {
+                                    "scientific_name": local_pred.get('plant', 'Unknown Specimen'),
+                                    "common_names": [local_pred.get('plant', 'Unknown Specimen')],
+                                    "score": local_pred.get('confidence', 0)
+                                }
+
+                        if "error" in kw or not kw.get('disease'):
+                            if not (isinstance(kw, dict) and kw.get('healthy')):
+                                status.write("Kindwise inconclusive. Extracting features from local pathogen matrix...")
+                                if local_pred:
+                                    kw = {
+                                        "disease": local_pred.get('disease', 'Healthy/Indeterminate'),
+                                        "probability": local_pred.get('confidence', 0),
+                                        "description": local_pred.get('tips', "No detailed pathology available in local mesh."),
+                                        "treatment": {"remedy": local_pred.get('tips', "Maintain standard care.")}
+                                    }
+                                else:
+                                    st.warning(f"Pathogen analysis failed: {kw.get('error', 'Unknown Error')}")
 
                         plant_key = pn.get('scientific_name') or pn.get('error') or 'Unknown Specimen'
                         status.write(f"Retrieving care protocols for {plant_key}...")
@@ -535,6 +430,7 @@ with col_in:
 
                         st.session_state.last_results = res
                         st.session_state.specimen_history.append({"name": plant_key, "status": res['disease'], "time": res['timestamp']})
+                        save_scan_to_history(res)
                         status.update(label="Zenith Diagnosis Fulllocked.", state="complete")
                         
                         st.session_state.chat_history.append({
@@ -590,13 +486,27 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
 </div>
 """, unsafe_allow_html=True)
         
-        rtabs = st.tabs(["🧪 Pathology", "🧬 Genomics", "📉 Quantum", "🌈 Spectral", "🛡️ Security", "🛒 Purchase", "📄 Reports"])
+        rtabs = st.tabs(["🧪 Pathology", "🧬 Genomics", "📉 Quantum", "🌈 Spectral", "🛡️ Security", "🛒 Purchase", "📄 Reports", "🕰️ History"])
+        
+        with rtabs[7]:
+            st.markdown("<h4 style='color:#6ee7b7;'>🕰️ Biological Audit Trail</h4>", unsafe_allow_html=True)
+            history = st.session_state.specimen_history[::-1] # Show newest first
+            if history:
+                for entry in history[:10]: # Show last 10
+                    with st.expander(f"📅 {entry['time']} | {entry['name']}"):
+                        st.write(f"**Status:** {entry['status']}")
+                        st.write(f"**Species:** {entry['name']}")
+            else:
+                st.info("No historical biological data available.")
         
         with rtabs[0]:
             col_p1, col_p2 = st.columns([2, 1])
             with col_p1:
                 st.markdown("<div style='display:inline-block; padding: 5px 12px; background: rgba(6,182,212,0.15); border: 1px solid #06b6d4; border-radius: 20px; font-size: 0.75rem; color: #67e8f9; margin-bottom: 10px;'>Powered by Crop.Health API ⚡</div>", unsafe_allow_html=True)
                 st.info(f"**Bio-Analysis:** {r.get('pathology', 'N/A')}")
+                
+                # Voice Assistant Integration
+                voice_assistant_component()
                 
                 # Perenual Care Info Integration
                 care_data = r.get('care', {})
@@ -786,30 +696,14 @@ CO2 Credit: {r.get('carbon', 0)}kg/yr
             st.markdown(f"<div style='margin-left: 10px;'>{t_html}</div>", unsafe_allow_html=True)
 
         with rtabs[6]:
-            st.markdown("<h4 style='color:#6ee7b7;'>📄 Enterprise Data Export Modules</h4>", unsafe_allow_html=True)
-            colD1, colD2 = st.columns(2)
-            with colD1:
-                st.info("Export highly detailed PDF Clinical Dossier for agronomist review.")
-                if st.button("Download Clinical PDF", use_container_width=True):
-                    pdf = FPDF()
-                    pdf.add_page()
-                    pdf.set_text_color(16, 185, 129)
-                    pdf.set_font("helvetica", "B", 24)
-                    pdf.cell(0, 20, "PLANTPULSE EMERALD DOSSIER", ln=True, align='C')
-                    pdf.set_font("helvetica", "", 12)
-                    pdf.multi_cell(0, 10, f"Target: {r.get('plant')}\nCondition: {r.get('disease')}\nPathology: {r.get('pathology')}")
-                    st.download_button("📥 Save Dossier as PDF", pdf.output(), f"Emerald_{r.get('plant', 'scan')}.pdf", "application/pdf", use_container_width=True)
-            with colD2:
-                st.success("Export raw JSON/CSV structured biological matrices.")
-                csv_data = [{"Metric": "Target", "Value": r.get('plant')}, {"Metric": "Severity", "Value": r.get('disease')}, {"Metric": "Confidence", "Value": f"{r.get('score')}%"}]
-                csv = pd.DataFrame(csv_data).to_csv(index=False)
-                st.download_button("💾 Save Matrix as CSV", csv, "emerald_telemetry.csv", "text/csv", use_container_width=True)
+            clinical_report_downloader(r)
     else:
         st.info("Scanner idle. Awaiting specimen input...")
 
 # --- Assistant ---
 st.divider()
 st.subheader("💬 Zenith Smart Assistant")
+voice_recognition_component()
 chat_box = st.container(height=350)
 with chat_box:
     for m in st.session_state.chat_history:
